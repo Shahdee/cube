@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="Cube rotation">
+</Property><Property Name="Solution File" Value="E:\Projects\directx\cube\Cube rotation.sln">
+</Property><Property Name="User Options File" Value="E:\Projects\directx\cube\Cube rotation.suo">
+</Property><Property Name="Date" Value="Thursday, September 06, 2012">
+</Property><Property Name="Time" Value="7:19 AM">
+</Property></Properties><Event ErrorLevel="0" Project="" Source="Cube rotation.sln" Description="File successfully backed up as E:\Projects\directx\cube\Cube rotation.sln.old">
+</Event><Event ErrorLevel="0" Project="" Source="Cube rotation.suo" Description="File successfully backed up as E:\Projects\directx\cube\Cube rotation.suo.old">
+</Event><Event ErrorLevel="0" Project="Cube rotation" Source="Cube rotation\Cube rotation.vcproj" Description="Converting project file 'E:\Projects\directx\cube\Cube rotation\Cube rotation.vcproj'.">
+</Event><Event ErrorLevel="1" Project="Cube rotation" Source="Cube rotation\Cube rotation.vcproj" Description="VCWebServiceProxyGeneratorTool is no longer supported. The tool has been removed from your project settings.">
+</Event><Event ErrorLevel="0" Project="Cube rotation" Source="Cube rotation\Cube rotation.vcproj" Description="Done converting to new project file 'E:\Projects\directx\cube\Cube rotation\Cube rotation.vcxproj'.">
+</Event><Event ErrorLevel="3" Project="Cube rotation" Source="Cube rotation\Cube rotation.vcproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="Cube rotation.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="Cube rotation.sln" Description="Converted">
+</Event></UpgradeLog>
