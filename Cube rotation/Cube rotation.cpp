@@ -25,6 +25,9 @@ char szTitle[]="Cube rotation";
 // объект Direct3D
 IDirect3D9 *pD3D=NULL;
 IDirect3DDevice9 *pD3DDevice=NULL;
+D3DMATERIAL9 pMaterial;  
+D3DLIGHT9 light;
+
 
 D3DXVECTOR3 position(0.0f, 0.0f, 50.0f);
 D3DXVECTOR3 target(0.0f, 0.0f, 0.0f);
@@ -42,20 +45,58 @@ IDirect3DIndexBuffer9*  IB;
 IDirect3DVertexBuffer9* axisX = 0;
 IDirect3DVertexBuffer9* axisY = 0;
 IDirect3DVertexBuffer9* axisZ = 0;
+IDirect3DVertexBuffer9* pir = 0;
 
 struct Vertex
 {
+private:
+	 float _x, _y, _z;
+	 D3DCOLOR  _c;
+
+public:
      Vertex(){}
-     Vertex(float x, float y, float z)
+
+     Vertex(float x, float y, float z, D3DCOLOR  c)
      {
           _x = x; _y = y; _z = z;
+		  _c =c;
      }
-     float _x, _y, _z;
+
      static const DWORD FVF;
 };
-const DWORD Vertex::FVF = D3DFVF_XYZ;
+struct LightVertex
+{
+private:
+	 float _x, _y, _z;
+	 float _nx, _ny, _nz;
+
+public:
+     LightVertex(){}
+
+     LightVertex(float x, float y, float z, float nx, float ny, float nz)
+     {
+          _x = x; _y = y; _z = z;
+		  _nx = nx; _ny = ny; _z = nz;
+     }
+
+     static const DWORD LFVF;
+};
+
+const DWORD Vertex::FVF = D3DFVF_XYZ | D3DFVF_DIFFUSE;
+const DWORD LightVertex::LFVF = D3DFVF_XYZ | D3DFVF_NORMAL;
 
 
+void EstimateNormal( D3DXVECTOR3* p0,
+					D3DXVECTOR3* p1,
+					D3DXVECTOR3* p2,
+					D3DXVECTOR3* p3,
+					D3DXVECTOR3* out)
+{
+	D3DXVECTOR3 u = *p1-*p0;
+	D3DXVECTOR3 v = *p2-*p0;
+	D3DXVec3Cross(out, &u, &v);
+	D3DXVec3Normalize(out,out);
+}
 
 
 #define MAX_LOADSTRING 100
@@ -215,19 +256,18 @@ void DrawScene(HWND hWnd,float delta)
 
           pD3DDevice->SetTransform(D3DTS_WORLD, &p);
 
-          //
           // рисование сцены:
 
 		// Все вызовы методов рисования должны находится внутри пары вызовов BeginScene и EndScene
 		if (SUCCEEDED(pD3DDevice->BeginScene())) 
 		{	  
-			pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER , D3DCOLOR_XRGB(255,0,0), 1.0f, 0);
-			pD3DDevice->SetStreamSource(0, VB, 0, sizeof(Vertex));
+			pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER , D3DCOLOR_ARGB(255,0,0,0), 1.0f, 0);
+
+			pD3DDevice->SetStreamSource(0, VB, 0, sizeof(Vertex)); // первый параметр число потоков, потом ук. на буфер вершин
 			pD3DDevice->SetIndices(IB);
 			pD3DDevice->SetFVF(Vertex::FVF);
-			pD3DDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,0, 0, 8, 0, 12); 
-		
-
+			pD3DDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,0, 0, 8, 0, 12);
+			
 			pD3DDevice->SetStreamSource(0,axisY,0,sizeof(Vertex));
 			pD3DDevice->SetFVF(Vertex::FVF);
 			pD3DDevice->DrawPrimitive(D3DPT_LINELIST,0,1); 
@@ -236,7 +276,6 @@ void DrawScene(HWND hWnd,float delta)
 			pD3DDevice->SetFVF(Vertex::FVF);
 			pD3DDevice->DrawPrimitive(D3DPT_LINELIST,0,1); 
 
-
 			pD3DDevice->SetStreamSource(0,axisZ,0,sizeof(Vertex));
 			pD3DDevice->SetFVF(Vertex::FVF);
 			pD3DDevice->DrawPrimitive(D3DPT_LINELIST,0,1); 
@@ -244,16 +283,17 @@ void DrawScene(HWND hWnd,float delta)
 			pD3DDevice->EndScene();
 		}
 
-		// Presents the contents of the next buffer in the sequence of back buffers owned by the device.
-		// Present will fail, returning D3DERR_INVALIDCALL, if called between BeginScene and EndScene pairs unless the render target is not the current render target (such as the back buffer you get from creating an additional swap chain). This is a new behavior for Direct3D 9. 
+		/* Presents the contents of the next buffer in the sequence of back buffers owned by the device.
+		Present will fail, returning D3DERR_INVALIDCALL, if called between BeginScene and EndScene pairs
+		unless the render target is not the current render target 
+		(such as the back buffer you get from creating an additional swap chain).
+		This is a new behavior for Direct3D 9.*/ 
 		pD3DDevice->Present(NULL, NULL, NULL, NULL);  
 }
 
 /*Инициализация буферов и объектов*/
 bool Setup()
 {
-
-
 	 // Создание буфера вершин и буфера индексов
      pD3DDevice->CreateVertexBuffer(
                    8 * sizeof(Vertex),
@@ -294,23 +334,30 @@ bool Setup()
                    D3DPOOL_MANAGED,
                    &axisZ,
                    0);
+	pD3DDevice->CreateVertexBuffer(
+					12*sizeof(LightVertex),
+					D3DUSAGE_WRITEONLY,
+					LightVertex::LFVF,
+					D3DPOOL_MANAGED,
+					&pir,
+					0);
 	 
 	 Vertex* drcY;
-	 axisY->Lock(0,0,(void**)&drcY,0);  // здесь произошло чтение по нулевому адресу, разобраться чуть позже
-	 drcY[0] = Vertex(0.0f,  0.0f, 0.0f);
-	 drcY[1] = Vertex(0.0f,  10.0f, 0.0f);
+	 axisY->Lock(0,0,(void**)&drcY,0);  
+	 drcY[0] = Vertex(0.0f,  0.0f, 0.0f, D3DCOLOR_ARGB(255,255,255,255));
+	 drcY[1] = Vertex(0.0f,  10.0f, 0.0f,D3DCOLOR_ARGB(255,255,255,255));
 	 axisY->Unlock();
 
 	 Vertex* drcX;
 	 axisX->Lock(0,0,(void**)&drcX,0);
-	 drcX[0] = Vertex(0.0f,  0.0f, 0.0f);
-	 drcX[1] = Vertex(10.0f, 0.0f, 0.0f);
+	 drcX[0] = Vertex(0.0f,  0.0f, 0.0f, D3DCOLOR_ARGB(255,255,0,0));
+	 drcX[1] = Vertex(10.0f, 0.0f, 0.0f, D3DCOLOR_ARGB(255,255,0,0));
 	 axisX->Unlock();
 
 	 Vertex* drcZ;
 	 axisZ->Lock(0,0,(void**)&drcZ,0);
-	 drcZ[0] = Vertex(0.0f,  0.0f, 0.0f);
-	 drcZ[1] = Vertex(0.0f,  0.0f, 10.0f);
+	 drcZ[0] = Vertex(0.0f,  0.0f, 0.0f, D3DCOLOR_ARGB(255,125,125,125));
+	 drcZ[1] = Vertex(0.0f,  0.0f, 10.0f,D3DCOLOR_ARGB(255,125,125,125));
 	 axisZ->Unlock();
 
      // Заполнение буферов данными куба
@@ -319,14 +366,14 @@ bool Setup()
 
      // Вершины единичного куба
 	 
-     vertices[0] = Vertex(-1.0f, -1.0f, -1.0f);
-     vertices[1] = Vertex(-1.0f,  1.0f, -1.0f);
-     vertices[2] = Vertex( 1.0f,  1.0f, -1.0f);
-     vertices[3] = Vertex( 1.0f, -1.0f, -1.0f);
-     vertices[4] = Vertex(-1.0f, -1.0f,  1.0f);
-     vertices[5] = Vertex(-1.0f,  1.0f,  1.0f);
-     vertices[6] = Vertex( 1.0f,  1.0f,  1.0f);
-     vertices[7] = Vertex( 1.0f, -1.0f,  1.0f);
+     vertices[0] = Vertex(-1.0f, -1.0f, -1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
+     vertices[1] = Vertex(-1.0f,  1.0f, -1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
+     vertices[2] = Vertex( 1.0f,  1.0f, -1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
+     vertices[3] = Vertex( 1.0f, -1.0f, -1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
+     vertices[4] = Vertex(-1.0f, -1.0f,  1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
+     vertices[5] = Vertex(-1.0f,  1.0f,  1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
+     vertices[6] = Vertex( 1.0f,  1.0f,  1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
+     vertices[7] = Vertex( 1.0f, -1.0f,  1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
 
      VB->Unlock();
 
@@ -360,6 +407,8 @@ bool Setup()
 
      IB->Unlock();
 
+	 pD3DDevice->SetTexture(0,NULL);
+
      // размещение и ориентация камеры
 
 	 //Builds a left-handed, look-at matrix.
@@ -385,7 +434,7 @@ bool Setup()
 	 pD3DDevice->SetViewport(&vp);
 
      // установка режима визуализации
-	 pD3DDevice->SetRenderState(D3DRS_FILLMODE,  D3DFILL_WIREFRAME);
+	 pD3DDevice->SetRenderState(D3DRS_FILLMODE,  D3DFILL_SOLID);
      return true;
 }
 

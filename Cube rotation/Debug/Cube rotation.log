@@ -1,12 +1,18 @@
-﻿Build started 9/6/2012 8:19:35 AM.
+﻿Build started 9/8/2012 7:24:40 PM.
      1>Project "E:\Projects\directx\cube\Cube rotation\Cube rotation.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\Cube rotation.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
          All outputs are up-to-date.
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I"d3dx9.lib  d3d9.lib" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D NDEBUG /D _WINDOWS /Gm /EHsc /RTC1 /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\Cube rotation.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt Init.cpp
-         Init.cpp
-     1>e:\projects\directx\cube\cube rotation\init.cpp(108): warning C4715: 'DX3DInitZ' : not all control paths return a value
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I"d3dx9.lib  d3d9.lib" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D NDEBUG /D _WINDOWS /Gm /EHsc /RTC1 /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\Cube rotation.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt "Cube rotation.cpp"
+         Cube rotation.cpp
+     1>e:\projects\directx\cube\cube rotation\cube rotation.cpp(163): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>e:\projects\directx\cube\cube rotation\cube rotation.cpp(120): warning C4101: 'ps' : unreferenced local variable
+     1>e:\projects\directx\cube\cube rotation\cube rotation.cpp(119): warning C4101: 'hdc' : unreferenced local variable
+     1>e:\projects\directx\cube\cube rotation\cube rotation.cpp(182): warning C4101: 'ps' : unreferenced local variable
+     1>e:\projects\directx\cube\cube rotation\cube rotation.cpp(181): warning C4101: 'wmId' : unreferenced local variable
+     1>e:\projects\directx\cube\cube rotation\cube rotation.cpp(181): warning C4101: 'wmEvent' : unreferenced local variable
+     1>e:\projects\directx\cube\cube rotation\cube rotation.cpp(183): warning C4101: 'hdc' : unreferenced local variable
        ResourceCompile:
          All outputs are up-to-date.
        ManifestResourceCompile:
@@ -31,4 +37,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.15
+Time Elapsed 00:00:01.64
