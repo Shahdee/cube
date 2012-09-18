@@ -10,11 +10,10 @@
 #include <iostream>
 #include <fstream>
 #include "SystemStructures.h"
-
-
+#include "Init.h"
 
 using namespace std;
-
+using namespace d3d;
 
 // Global Variables:
 char szWindowClass[]="DirectX9 Project";
@@ -25,17 +24,25 @@ char szTitle[]="Cube rotation";
 // объект Direct3D
 IDirect3D9 *pD3D=NULL;
 IDirect3DDevice9 *pD3DDevice=NULL;
-D3DMATERIAL9 pMaterial;  
+D3DMATERIAL9 material;  
 D3DLIGHT9 light;
 
-
+/*
 D3DXVECTOR3 position(0.0f, 0.0f, 50.0f);
 D3DXVECTOR3 target(0.0f, 0.0f, 0.0f);
 D3DXVECTOR3 up(0.0f, 1.0f, 0.0f);
+*/
+
+D3DXVECTOR3 position(0.0f, 1.0f, -3.0f);
+D3DXVECTOR3 target(0.0f, 0.0f, 0.0f);
+D3DXVECTOR3 up(0.0f, 1.0f, 0.0f);
+
 D3DXMATRIX V;
 
-int iW=1680;
-int iH=1050;
+//int iW=1680;
+//int iH=1050;
+int iW=1366;
+int iH=768;
 
 void DrawScene(HWND hWnd, float delta);
 bool Setup();
@@ -56,14 +63,13 @@ private:
 public:
      Vertex(){}
 
-     Vertex(float x, float y, float z, D3DCOLOR  c)
-     {
+     Vertex(float x, float y, float z, D3DCOLOR  c){
           _x = x; _y = y; _z = z;
 		  _c =c;
      }
-
      static const DWORD FVF;
 };
+
 struct LightVertex
 {
 private:
@@ -73,12 +79,10 @@ private:
 public:
      LightVertex(){}
 
-     LightVertex(float x, float y, float z, float nx, float ny, float nz)
-     {
+     LightVertex(float x, float y, float z, float nx, float ny, float nz){
           _x = x; _y = y; _z = z;
 		  _nx = nx; _ny = ny; _z = nz;
      }
-
      static const DWORD LFVF;
 };
 
@@ -139,7 +143,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	
 	// создаем  окно
 	hWnd=CreateWindow(szWindowClass,szTitle, WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, CW_DEFAULT,
-		CW_USEDEFAULT, iW, iH, NULL, NULL, hInstance,NULL);
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInstance,NULL);
 	if(!hWnd)
 		return false;
 
@@ -209,65 +213,56 @@ bool Init(HWND hWnd)
 
 void DrawScene(HWND hWnd,float delta)
 {
-	if(KEY_DOWN(VK_ESCAPE))
-	{
+	if(KEY_DOWN(VK_ESCAPE)){
 		// помещает сообщение в очередь ассоциированную с потоком, который создал указаннон окно и возвращается без ожидания обработки сообщения потоком
 		PostMessage(hWnd,WM_DESTROY,0,0); 
-		
 	}
-	if(KEY_DOWN(VK_UP))
-	{
+	if(KEY_DOWN(VK_UP)){
 	 position.z+=10;
-	
      //Builds a left-handed, look-at matrix.
      D3DXMatrixLookAtLH(&V, &position, &target, &up);
-
 	// пространство вида
      pD3DDevice->SetTransform(D3DTS_VIEW, &V);
-
 	}
 
-	if(KEY_DOWN(VK_DOWN))
-	{
+	if(KEY_DOWN(VK_DOWN)){
 	 position.z-=10;
      //Builds a left-handed, look-at matrix.
      D3DXMatrixLookAtLH(&V, &position, &target, &up);
-
 	// пространство вида
      pD3DDevice->SetTransform(D3DTS_VIEW, &V);
 	}
+	D3DXMATRIX Rx, Ry;
+    // поворот на 45 градусов вокруг оси X
+    D3DXMatrixRotationX(&Rx, 3.14f / 4.0f);
+    // увеличение угла поворота вокруг оси Y в каждом кадре
+    static float y = 0.0f;
+    D3DXMatrixRotationY(&Ry, y);
+	y += delta;
+    // сброс угла поворота, если он достиг 2*PI
+    if( y >= 6.28f )
+	   y = 0.0f;
+    // комбинация поворотов
+    D3DXMATRIX p = Rx * Ry;
+    pD3DDevice->SetTransform(D3DTS_WORLD, &p);
+    // рисование сцены:
 
-		  D3DXMATRIX Rx, Ry;
+	// Все вызовы методов рисования должны находится внутри пары вызовов BeginScene и EndScene
+	if (SUCCEEDED(pD3DDevice->BeginScene())){	  
+		pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER , D3DCOLOR_ARGB(255,0,0,0), 1.0f, 0);
 
-          // поворот на 45 градусов вокруг оси X
-          D3DXMatrixRotationX(&Rx, 3.14f / 4.0f);
-
-          // увеличение угла поворота вокруг оси Y в каждом кадре
-          static float y = 0.0f;
-          D3DXMatrixRotationY(&Ry, y);
-          y += delta;
-
-          // сброс угла поворота, если он достиг 2*PI
-          if( y >= 6.28f )
-               y = 0.0f;
-
-          // комбинация поворотов
-          D3DXMATRIX p = Rx * Ry;
-
-          pD3DDevice->SetTransform(D3DTS_WORLD, &p);
-
-          // рисование сцены:
-
-		// Все вызовы методов рисования должны находится внутри пары вызовов BeginScene и EndScene
-		if (SUCCEEDED(pD3DDevice->BeginScene())) 
-		{	  
-			pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER , D3DCOLOR_ARGB(255,0,0,0), 1.0f, 0);
-
+			/*
 			pD3DDevice->SetStreamSource(0, VB, 0, sizeof(Vertex)); // первый параметр число потоков, потом ук. на буфер вершин
 			pD3DDevice->SetIndices(IB);
 			pD3DDevice->SetFVF(Vertex::FVF);
 			pD3DDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,0, 0, 8, 0, 12);
+			*/
+
+		pD3DDevice->SetStreamSource(0, pir, 0, sizeof(LightVertex));
+		pD3DDevice->SetFVF(LightVertex::LFVF);
+		pD3DDevice->DrawPrimitive(D3DPT_TRIANGLELIST,0,4);
 			
+			/*
 			pD3DDevice->SetStreamSource(0,axisY,0,sizeof(Vertex));
 			pD3DDevice->SetFVF(Vertex::FVF);
 			pD3DDevice->DrawPrimitive(D3DPT_LINELIST,0,1); 
@@ -279,16 +274,17 @@ void DrawScene(HWND hWnd,float delta)
 			pD3DDevice->SetStreamSource(0,axisZ,0,sizeof(Vertex));
 			pD3DDevice->SetFVF(Vertex::FVF);
 			pD3DDevice->DrawPrimitive(D3DPT_LINELIST,0,1); 
+			*/
 
-			pD3DDevice->EndScene();
-		}
+		pD3DDevice->EndScene();
+	}
 
-		/* Presents the contents of the next buffer in the sequence of back buffers owned by the device.
-		Present will fail, returning D3DERR_INVALIDCALL, if called between BeginScene and EndScene pairs
-		unless the render target is not the current render target 
-		(such as the back buffer you get from creating an additional swap chain).
-		This is a new behavior for Direct3D 9.*/ 
-		pD3DDevice->Present(NULL, NULL, NULL, NULL);  
+	/* Presents the contents of the next buffer in the sequence of back buffers owned by the device.
+	Present will fail, returning D3DERR_INVALIDCALL, if called between BeginScene and EndScene pairs
+	unless the render target is not the current render target 
+	(such as the back buffer you get from creating an additional swap chain).
+	This is a new behavior for Direct3D 9.*/ 
+	pD3DDevice->Present(NULL, NULL, NULL, NULL);  
 }
 
 /*Инициализация буферов и объектов*/
@@ -364,7 +360,56 @@ bool Setup()
      Vertex* vertices;
      VB->Lock(0, 0, (void**)&vertices, 0);
 
-     // Вершины единичного куба
+	 //
+	 LightVertex* v;
+	 pir->Lock(0, 0, (void**)&v, 0);
+
+	 // front face
+	 v[0] = LightVertex(-1.0f, 0.0f, -1.0f, 0.0f, 0.707f, -0.707f);
+     v[1] = LightVertex( 0.0f, 1.0f,  0.0f, 0.0f, 0.707f, -0.707f);
+     v[2] = LightVertex( 1.0f, 0.0f, -1.0f, 0.0f, 0.707f, -0.707f);
+
+     // левая грань
+     v[3] = LightVertex(-1.0f, 0.0f,  1.0f, -0.707f, 0.707f, 0.0f);
+     v[4] = LightVertex( 0.0f, 1.0f,  0.0f, -0.707f, 0.707f, 0.0f);
+     v[5] = LightVertex(-1.0f, 0.0f, -1.0f, -0.707f, 0.707f, 0.0f);
+
+     // правая грань
+     v[6] = LightVertex( 1.0f, 0.0f, -1.0f, 0.707f, 0.707f, 0.0f);
+     v[7] = LightVertex( 0.0f, 1.0f,  0.0f, 0.707f, 0.707f, 0.0f);
+     v[8] = LightVertex( 1.0f, 0.0f,  1.0f, 0.707f, 0.707f, 0.0f);
+
+     // задняя грань
+     v[9]  = LightVertex( 1.0f, 0.0f, 1.0f, 0.0f, 0.707f, -0.707f);
+     v[10] = LightVertex( 0.0f, 1.0f, 0.0f, 0.0f, 0.707f, -0.707f);
+     v[11] = LightVertex(-1.0f, 0.0f, 1.0f, 0.0f, 0.707f, -0.707f);
+
+	 pir->Unlock();
+
+	 D3DCOLORVALUE val;
+	 
+
+	 material.Ambient  = d3d::WHITE;
+	 material.Diffuse  = d3d::WHITE;
+	 material.Specular = d3d::WHITE;
+	 material.Emissive = d3d::BLACK;
+	 material.Power    = 5.0f;
+
+	 pD3DDevice->SetMaterial(&material);
+
+	 ZeroMemory(&light, sizeof(light));
+
+	 light.Type      = D3DLIGHT_DIRECTIONAL;
+	 light.Diffuse   = (D3DCOLORVALUE)d3d::WHITE;
+     light.Specular  = d3d::WHITE * 0.3f;
+     light.Ambient   = d3d::WHITE * 0.6f;
+
+     light.Direction = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
+
+     pD3DDevice->SetLight(0, &light);
+     pD3DDevice->LightEnable(0, true);
+
+	 // Вершины единичного куба
 	 
      vertices[0] = Vertex(-1.0f, -1.0f, -1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
      vertices[1] = Vertex(-1.0f,  1.0f, -1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
@@ -435,6 +480,8 @@ bool Setup()
 
      // установка режима визуализации
 	 pD3DDevice->SetRenderState(D3DRS_FILLMODE,  D3DFILL_SOLID);
+	 //pD3DDevice->SetRenderState(D3DRS_NORMALIZENORMALS, true);
+	 pD3DDevice->SetRenderState(D3DRS_LIGHTING, true);
      return true;
 }
 

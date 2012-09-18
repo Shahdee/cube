@@ -1,40 +1,40 @@
-﻿Build started 9/8/2012 7:24:40 PM.
-     1>Project "E:\Projects\directx\cube\Cube rotation\Cube rotation.vcxproj" on node 2 (build target(s)).
+﻿Build started 19.09.2012 1:11:42.
+     1>Project "D:\projects\cube\Cube rotation\Cube rotation.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
-         Creating "Debug\Cube rotation.unsuccessfulbuild" because "AlwaysCreate" was specified.
+         Touching "Debug\Cube rotation.unsuccessfulbuild".
        ClCompile:
-         All outputs are up-to-date.
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I"d3dx9.lib  d3d9.lib" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D NDEBUG /D _WINDOWS /Gm /EHsc /RTC1 /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\Cube rotation.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt "Cube rotation.cpp"
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _MBCS /Gm /EHsc /RTC1 /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"StdAfx.h" /Fp"Debug\Cube rotation.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt "Cube rotation.cpp" Init.cpp SystemStructures.cpp stdafx.cpp
+         stdafx.cpp
+         SystemStructures.cpp
+         Init.cpp
          Cube rotation.cpp
-     1>e:\projects\directx\cube\cube rotation\cube rotation.cpp(163): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>e:\projects\directx\cube\cube rotation\cube rotation.cpp(120): warning C4101: 'ps' : unreferenced local variable
-     1>e:\projects\directx\cube\cube rotation\cube rotation.cpp(119): warning C4101: 'hdc' : unreferenced local variable
-     1>e:\projects\directx\cube\cube rotation\cube rotation.cpp(182): warning C4101: 'ps' : unreferenced local variable
-     1>e:\projects\directx\cube\cube rotation\cube rotation.cpp(181): warning C4101: 'wmId' : unreferenced local variable
-     1>e:\projects\directx\cube\cube rotation\cube rotation.cpp(181): warning C4101: 'wmEvent' : unreferenced local variable
-     1>e:\projects\directx\cube\cube rotation\cube rotation.cpp(183): warning C4101: 'hdc' : unreferenced local variable
-       ResourceCompile:
-         All outputs are up-to-date.
-       ManifestResourceCompile:
-         All outputs are up-to-date.
-       Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Projects\directx\cube\Debug\Cube rotation.exe" /INCREMENTAL /NOLOGO d3dx9.lib d3d9.lib winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\Cube rotation.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"E:\Projects\directx\cube\Debug\Cube rotation.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Projects\directx\cube\Debug\Cube rotation.lib" /MACHINE:X86 "Debug\Cube rotation.res"
-         "Debug\Cube rotation.exe.embed.manifest.res"
-         "Debug\Cube rotation.obj"
-         Debug\Init.obj
-         Debug\stdafx.obj
-         Debug\SystemStructures.obj
-       Manifest:
-         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /out:"Debug\Cube rotation.exe.embed.manifest" /manifest "Debug\Cube rotation.exe.intermediate.manifest"
-         All outputs are up-to-date.
-       LinkEmbedManifest:
-         All outputs are up-to-date.
-         Cube rotation.vcxproj -> E:\Projects\directx\cube\Debug\Cube rotation.exe
-       FinalizeBuildStatus:
-         Deleting file "Debug\Cube rotation.unsuccessfulbuild".
-         Touching "Debug\Cube rotation.lastbuildstate".
-     1>Done Building Project "E:\Projects\directx\cube\Cube rotation\Cube rotation.vcxproj" (build target(s)).
+     1>d:\projects\cube\cube rotation\init.h(18): error C2374: 'd3d::WHITE' : redefinition; multiple initialization
+                 d:\projects\cube\cube rotation\init.h(18) : see declaration of 'd3d::WHITE'
+     1>d:\projects\cube\cube rotation\init.h(19): error C2374: 'd3d::BLACK' : redefinition; multiple initialization
+                 d:\projects\cube\cube rotation\init.h(19) : see declaration of 'd3d::BLACK'
+     1>d:\projects\cube\cube rotation\init.h(20): error C2374: 'd3d::RED' : redefinition; multiple initialization
+                 d:\projects\cube\cube rotation\init.h(20) : see declaration of 'd3d::RED'
+     1>d:\projects\cube\cube rotation\init.h(21): error C2374: 'd3d::GREEN' : redefinition; multiple initialization
+                 d:\projects\cube\cube rotation\init.h(21) : see declaration of 'd3d::GREEN'
+     1>d:\projects\cube\cube rotation\init.h(22): error C2374: 'd3d::BLUE' : redefinition; multiple initialization
+                 d:\projects\cube\cube rotation\init.h(22) : see declaration of 'd3d::BLUE'
+     1>d:\projects\cube\cube rotation\init.h(23): error C2374: 'd3d::YELLOW' : redefinition; multiple initialization
+                 d:\projects\cube\cube rotation\init.h(23) : see declaration of 'd3d::YELLOW'
+     1>d:\projects\cube\cube rotation\init.h(24): error C2374: 'd3d::CYAN' : redefinition; multiple initialization
+                 d:\projects\cube\cube rotation\init.h(24) : see declaration of 'd3d::CYAN'
+     1>d:\projects\cube\cube rotation\init.h(25): error C2374: 'd3d::MAGENTA' : redefinition; multiple initialization
+                 d:\projects\cube\cube rotation\init.h(25) : see declaration of 'd3d::MAGENTA'
+     1>d:\projects\cube\cube rotation\cube rotation.cpp(167): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>d:\projects\cube\cube rotation\cube rotation.cpp(392): error C2440: '=' : cannot convert from 'const D3DXCOLOR' to 'D3DCOLORVALUE'
+     1>d:\projects\cube\cube rotation\cube rotation.cpp(393): error C2440: '=' : cannot convert from 'const D3DXCOLOR' to 'D3DCOLORVALUE'
+     1>d:\projects\cube\cube rotation\cube rotation.cpp(394): error C2440: '=' : cannot convert from 'const D3DXCOLOR' to 'D3DCOLORVALUE'
+     1>d:\projects\cube\cube rotation\cube rotation.cpp(395): error C2440: '=' : cannot convert from 'const D3DXCOLOR' to 'D3DCOLORVALUE'
+     1>d:\projects\cube\cube rotation\cube rotation.cpp(403): error C2100: illegal indirection
+     1>d:\projects\cube\cube rotation\cube rotation.cpp(403): error C2440: 'initializing' : cannot convert from 'const D3DXCOLOR' to 'D3DCOLORVALUE'
+     1>d:\projects\cube\cube rotation\cube rotation.cpp(404): error C2088: '*' : illegal for struct
+     1>d:\projects\cube\cube rotation\cube rotation.cpp(405): error C2088: '*' : illegal for struct
+     1>Done Building Project "D:\projects\cube\Cube rotation\Cube rotation.vcxproj" (build target(s)) -- FAILED.
 
-Build succeeded.
+Build FAILED.
 
-Time Elapsed 00:00:01.64
+Time Elapsed 00:00:12.11
