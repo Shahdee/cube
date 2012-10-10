@@ -27,22 +27,18 @@ IDirect3DDevice9 *pD3DDevice=NULL;
 D3DMATERIAL9 material;  
 D3DLIGHT9 light;
 
-/*
-D3DXVECTOR3 position(0.0f, 0.0f, 50.0f);
-D3DXVECTOR3 target(0.0f, 0.0f, 0.0f);
-D3DXVECTOR3 up(0.0f, 1.0f, 0.0f);
-*/
 
-D3DXVECTOR3 position(0.0f, 1.0f, -3.0f);
+D3DXVECTOR3 position(0.0f, 0.0f, 50.0f);
 D3DXVECTOR3 target(0.0f, 0.0f, 0.0f);
 D3DXVECTOR3 up(0.0f, 1.0f, 0.0f);
 
 D3DXMATRIX V;
 
-//int iW=1680;
-//int iH=1050;
+int iW=1680;
+int iH=1050;
+/*
 int iW=1366;
-int iH=768;
+int iH=768;*/
 
 void DrawScene(HWND hWnd, float delta);
 bool Setup();
@@ -258,10 +254,10 @@ void DrawScene(HWND hWnd,float delta)
 			pD3DDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,0, 0, 8, 0, 12);
 			*/
 
-		pD3DDevice->SetStreamSource(0, pir, 0, sizeof(LightVertex));
-		pD3DDevice->SetFVF(LightVertex::LFVF);
-		pD3DDevice->DrawPrimitive(D3DPT_TRIANGLELIST,0,4);
-			
+			pD3DDevice->SetStreamSource(0, pir, 0, sizeof(LightVertex));
+			pD3DDevice->SetFVF(LightVertex::LFVF);
+			pD3DDevice->DrawPrimitive(D3DPT_TRIANGLELIST,0,4);
+
 			/*
 			pD3DDevice->SetStreamSource(0,axisY,0,sizeof(Vertex));
 			pD3DDevice->SetFVF(Vertex::FVF);
@@ -275,7 +271,6 @@ void DrawScene(HWND hWnd,float delta)
 			pD3DDevice->SetFVF(Vertex::FVF);
 			pD3DDevice->DrawPrimitive(D3DPT_LINELIST,0,1); 
 			*/
-
 		pD3DDevice->EndScene();
 	}
 
@@ -287,10 +282,15 @@ void DrawScene(HWND hWnd,float delta)
 	pD3DDevice->Present(NULL, NULL, NULL, NULL);  
 }
 
+
+
+
 /*Инициализация буферов и объектов*/
 bool Setup()
 {
-	 // Создание буфера вершин и буфера индексов
+	 /* Создание буфера вершин и буфера индексов
+	 Впоследствии надо реализовать проверку на создание буфера!
+	 А также проверку, когда блокируем буфер*/
      pD3DDevice->CreateVertexBuffer(
                    8 * sizeof(Vertex),
                    D3DUSAGE_WRITEONLY,
@@ -361,11 +361,11 @@ bool Setup()
      VB->Lock(0, 0, (void**)&vertices, 0);
 
 	 //
+
 	 LightVertex* v;
 	 pir->Lock(0, 0, (void**)&v, 0);
-
-	 // front face
-	 v[0] = LightVertex(-1.0f, 0.0f, -1.0f, 0.0f, 0.707f, -0.707f);
+     // передняя грань
+     v[0] = LightVertex(-1.0f, 0.0f, -1.0f, 0.0f, 0.707f, -0.707f);
      v[1] = LightVertex( 0.0f, 1.0f,  0.0f, 0.0f, 0.707f, -0.707f);
      v[2] = LightVertex( 1.0f, 0.0f, -1.0f, 0.0f, 0.707f, -0.707f);
 
@@ -383,28 +383,22 @@ bool Setup()
      v[9]  = LightVertex( 1.0f, 0.0f, 1.0f, 0.0f, 0.707f, -0.707f);
      v[10] = LightVertex( 0.0f, 1.0f, 0.0f, 0.0f, 0.707f, -0.707f);
      v[11] = LightVertex(-1.0f, 0.0f, 1.0f, 0.0f, 0.707f, -0.707f);
-
 	 pir->Unlock();
-
-	 D3DCOLORVALUE val;
-	 
 
 	 material.Ambient  = d3d::WHITE;
 	 material.Diffuse  = d3d::WHITE;
 	 material.Specular = d3d::WHITE;
 	 material.Emissive = d3d::BLACK;
 	 material.Power    = 5.0f;
-
 	 pD3DDevice->SetMaterial(&material);
 
 	 ZeroMemory(&light, sizeof(light));
 
 	 light.Type      = D3DLIGHT_DIRECTIONAL;
-	 light.Diffuse   = (D3DCOLORVALUE)d3d::WHITE;
+	 light.Diffuse   = d3d::WHITE;
      light.Specular  = d3d::WHITE * 0.3f;
      light.Ambient   = d3d::WHITE * 0.6f;
-
-     light.Direction = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
+     light.Direction = D3DXVECTOR3(1.0f, -0.0f, 0.25f);	
 
      pD3DDevice->SetLight(0, &light);
      pD3DDevice->LightEnable(0, true);
@@ -479,8 +473,7 @@ bool Setup()
 	 pD3DDevice->SetViewport(&vp);
 
      // установка режима визуализации
-	 pD3DDevice->SetRenderState(D3DRS_FILLMODE,  D3DFILL_SOLID);
-	 //pD3DDevice->SetRenderState(D3DRS_NORMALIZENORMALS, true);
+	 pD3DDevice->SetRenderState(D3DRS_NORMALIZENORMALS, true);
 	 pD3DDevice->SetRenderState(D3DRS_LIGHTING, true);
      return true;
 }
