@@ -25,7 +25,6 @@ HRESULT DX3DInitZ(IDirect3D9 **ppiD3D9,
 	if( NULL == (*ppiD3D9 = Direct3DCreate9(D3D_SDK_VERSION)))
 		return E_FAIL;
 
-		
 	(*ppiD3D9)->GetDeviceCaps(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &caps);    // потом учесть, что мб несколько адаптеров в системе
 	if(caps.DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT)
 	{
@@ -40,7 +39,7 @@ HRESULT DX3DInitZ(IDirect3D9 **ppiD3D9,
 	prm.BackBufferHeight=iH;
 	prm.BackBufferCount=1;
 	prm.hDeviceWindow=hWnd;
-	prm.AutoDepthStencilFormat= D3DFMT_D16; 
+	prm.AutoDepthStencilFormat= D3DFMT_D24S8; 
 	prm.EnableAutoDepthStencil=TRUE; 	//Автоматическое создание и поддержка буфера глубины и трафарета 
 
 	// выбор полноэкранный режим или оконный

@@ -10,7 +10,6 @@
 #include <iostream>
 #include <fstream>
 #include "SystemStructures.h"
-#include "Init.h"
 
 using namespace std;
 using namespace d3d;
@@ -28,17 +27,16 @@ D3DMATERIAL9 material;
 D3DLIGHT9 light;
 
 
-D3DXVECTOR3 position(0.0f, 0.0f, 50.0f);
+D3DXVECTOR3 position(0.0f, 1.0f, -3.0f);
 D3DXVECTOR3 target(0.0f, 0.0f, 0.0f);
 D3DXVECTOR3 up(0.0f, 1.0f, 0.0f);
 
 D3DXMATRIX V;
 
-int iW=1680;
-int iH=1050;
-/*
+//int iW=1680;
+//int iH=1050;
 int iW=1366;
-int iH=768;*/
+int iH=768;
 
 void DrawScene(HWND hWnd, float delta);
 bool Setup();
@@ -49,6 +47,11 @@ IDirect3DVertexBuffer9* axisX = 0;
 IDirect3DVertexBuffer9* axisY = 0;
 IDirect3DVertexBuffer9* axisZ = 0;
 IDirect3DVertexBuffer9* pir = 0;
+
+IDirect3DVertexBuffer9* Quad = 0;
+IDirect3DTexture9* Tex = 0;
+
+IDirect3DVertexBuffer9* mirrorBuffer = 0;
 
 struct Vertex
 {
@@ -77,13 +80,31 @@ public:
 
      LightVertex(float x, float y, float z, float nx, float ny, float nz){
           _x = x; _y = y; _z = z;
-		  _nx = nx; _ny = ny; _z = nz;
+		  _nx = nx; _ny = ny; _nz = z;  // перепутала местами z координату
      }
      static const DWORD LFVF;
 };
 
+struct TexelVertex
+{
+private:
+	 float _x, _y, _z;
+	 float _nx, _ny, _nz;
+	 float _u, _v;
+public:
+	TexelVertex(){}
+
+	TexelVertex(float x, float y, float z, float nx, float ny, float nz, float u, float v){
+		_x = x; _y = y; _z = z;
+		_nx = nx; _ny = ny; _nz = z; 
+		_u = u, _v = v;
+	}
+	static const DWORD TLFVF;
+};
+
 const DWORD Vertex::FVF = D3DFVF_XYZ | D3DFVF_DIFFUSE;
 const DWORD LightVertex::LFVF = D3DFVF_XYZ | D3DFVF_NORMAL;
+const DWORD TexelVertex::TLFVF = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1;
 
 
 void EstimateNormal( D3DXVECTOR3* p0,
@@ -112,7 +133,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
                      LPTSTR    lpCmdLine,
                      int       nCmdShow)
 {
-	
  	WNDCLASS  winclass;
 	MSG msg;
 	HWND hWnd;
@@ -168,20 +188,15 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		}
 		return (msg.wParam);// mine
 	}
-
   CoUninitialize();
-
   return 0;
 }
-
-
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
 	HDC hdc;
-
 	switch (message)
 	{
 	case WM_DESTROY:
@@ -192,8 +207,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	return 0;
 }
-
-
 
 bool Init(HWND hWnd)
 {
@@ -213,8 +226,9 @@ void DrawScene(HWND hWnd,float delta)
 		// помещает сообщение в очередь ассоциированную с потоком, который создал указаннон окно и возвращается без ожидания обработки сообщения потоком
 		PostMessage(hWnd,WM_DESTROY,0,0); 
 	}
+
 	if(KEY_DOWN(VK_UP)){
-	 position.z+=10;
+	 position.z+=1;
      //Builds a left-handed, look-at matrix.
      D3DXMatrixLookAtLH(&V, &position, &target, &up);
 	// пространство вида
@@ -222,15 +236,17 @@ void DrawScene(HWND hWnd,float delta)
 	}
 
 	if(KEY_DOWN(VK_DOWN)){
-	 position.z-=10;
+	 position.z-=1;
      //Builds a left-handed, look-at matrix.
      D3DXMatrixLookAtLH(&V, &position, &target, &up);
 	// пространство вида
      pD3DDevice->SetTransform(D3DTS_VIEW, &V);
 	}
+
+	/*
 	D3DXMATRIX Rx, Ry;
     // поворот на 45 градусов вокруг оси X
-    D3DXMatrixRotationX(&Rx, 3.14f / 4.0f);
+	D3DXMatrixRotationX(&Rx, 3.14f / 4.0f); 
     // увеличение угла поворота вокруг оси Y в каждом кадре
     static float y = 0.0f;
     D3DXMatrixRotationY(&Ry, y);
@@ -238,14 +254,22 @@ void DrawScene(HWND hWnd,float delta)
     // сброс угла поворота, если он достиг 2*PI
     if( y >= 6.28f )
 	   y = 0.0f;
-    // комбинация поворотов
-    D3DXMATRIX p = Rx * Ry;
-    pD3DDevice->SetTransform(D3DTS_WORLD, &p);
-    // рисование сцены:
+	// комбинация поворотов
+	D3DXMATRIX p = Rx * Ry; 
+	pD3DDevice->SetTransform(D3DTS_WORLD, &p); 
+	pD3DDevice->SetTransform(D3DTS_WORLD, &Ry);
+	*/
 
+
+    // рисование сцены
 	// Все вызовы методов рисования должны находится внутри пары вызовов BeginScene и EndScene
 	if (SUCCEEDED(pD3DDevice->BeginScene())){	  
-		pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER , D3DCOLOR_ARGB(255,0,0,0), 1.0f, 0);
+		pD3DDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, (255,255,255), 1.0f, 0);
+
+			pD3DDevice->SetStreamSource(0, Quad, 0, sizeof(TexelVertex));
+			pD3DDevice->SetFVF(TexelVertex::TLFVF);
+			pD3DDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 2);
+
 
 			/*
 			pD3DDevice->SetStreamSource(0, VB, 0, sizeof(Vertex)); // первый параметр число потоков, потом ук. на буфер вершин
@@ -253,11 +277,9 @@ void DrawScene(HWND hWnd,float delta)
 			pD3DDevice->SetFVF(Vertex::FVF);
 			pD3DDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,0, 0, 8, 0, 12);
 			*/
-
-			pD3DDevice->SetStreamSource(0, pir, 0, sizeof(LightVertex));
-			pD3DDevice->SetFVF(LightVertex::LFVF);
-			pD3DDevice->DrawPrimitive(D3DPT_TRIANGLELIST,0,4);
-
+			//pD3DDevice->SetStreamSource(0, pir, 0, sizeof(LightVertex));
+			//pD3DDevice->SetFVF(LightVertex::LFVF);
+			//pD3DDevice->DrawPrimitive(D3DPT_TRIANGLELIST,0,4);
 			/*
 			pD3DDevice->SetStreamSource(0,axisY,0,sizeof(Vertex));
 			pD3DDevice->SetFVF(Vertex::FVF);
@@ -282,54 +304,13 @@ void DrawScene(HWND hWnd,float delta)
 	pD3DDevice->Present(NULL, NULL, NULL, NULL);  
 }
 
-
-
-
 /*Инициализация буферов и объектов*/
 bool Setup()
 {
-	 /* Создание буфера вершин и буфера индексов
-	 Впоследствии надо реализовать проверку на создание буфера!
-	 А также проверку, когда блокируем буфер*/
-     pD3DDevice->CreateVertexBuffer(
-                   8 * sizeof(Vertex),
-                   D3DUSAGE_WRITEONLY,
-                   Vertex::FVF,
-                   D3DPOOL_MANAGED,
-                   &VB,
-                   0);
+	//pD3DDevice->SetRenderState(D3DRS_LIGHTING, true); // necessary to use the light in scene  // don't need it for texture example
 
-     pD3DDevice->CreateIndexBuffer(
-                   36 * sizeof(WORD),
-                   D3DUSAGE_WRITEONLY,  // это значит что я не могу читать из этого буфера. только запись данных
-                   D3DFMT_INDEX16,
-                   D3DPOOL_MANAGED,
-                   &IB,
-                   0);
-
-	 pD3DDevice->CreateVertexBuffer(
-                   8 * sizeof(Vertex),
-                   D3DUSAGE_WRITEONLY,
-                   Vertex::FVF,
-                   D3DPOOL_MANAGED,
-                   &axisX,
-                   0);
-
-	 pD3DDevice->CreateVertexBuffer(
-                   8 * sizeof(Vertex),
-                   D3DUSAGE_WRITEONLY,
-                   Vertex::FVF,
-                   D3DPOOL_MANAGED,
-                   &axisY,
-                   0);
-
-	pD3DDevice->CreateVertexBuffer(
-                   8 * sizeof(Vertex),
-                   D3DUSAGE_WRITEONLY, 
-                   Vertex::FVF,
-                   D3DPOOL_MANAGED,
-                   &axisZ,
-                   0);
+	/*
+	 // Создание буфера вершин
 	pD3DDevice->CreateVertexBuffer(
 					12*sizeof(LightVertex),
 					D3DUSAGE_WRITEONLY,
@@ -337,54 +318,61 @@ bool Setup()
 					D3DPOOL_MANAGED,
 					&pir,
 					0);
-	 
-	 Vertex* drcY;
-	 axisY->Lock(0,0,(void**)&drcY,0);  
-	 drcY[0] = Vertex(0.0f,  0.0f, 0.0f, D3DCOLOR_ARGB(255,255,255,255));
-	 drcY[1] = Vertex(0.0f,  10.0f, 0.0f,D3DCOLOR_ARGB(255,255,255,255));
-	 axisY->Unlock();
 
-	 Vertex* drcX;
-	 axisX->Lock(0,0,(void**)&drcX,0);
-	 drcX[0] = Vertex(0.0f,  0.0f, 0.0f, D3DCOLOR_ARGB(255,255,0,0));
-	 drcX[1] = Vertex(10.0f, 0.0f, 0.0f, D3DCOLOR_ARGB(255,255,0,0));
-	 axisX->Unlock();
-
-	 Vertex* drcZ;
-	 axisZ->Lock(0,0,(void**)&drcZ,0);
-	 drcZ[0] = Vertex(0.0f,  0.0f, 0.0f, D3DCOLOR_ARGB(255,125,125,125));
-	 drcZ[1] = Vertex(0.0f,  0.0f, 10.0f,D3DCOLOR_ARGB(255,125,125,125));
-	 axisZ->Unlock();
-
-     // Заполнение буферов данными куба
-     Vertex* vertices;
-     VB->Lock(0, 0, (void**)&vertices, 0);
-
-	 //
-
-	 LightVertex* v;
-	 pir->Lock(0, 0, (void**)&v, 0);
-     // передняя грань
-     v[0] = LightVertex(-1.0f, 0.0f, -1.0f, 0.0f, 0.707f, -0.707f);
-     v[1] = LightVertex( 0.0f, 1.0f,  0.0f, 0.0f, 0.707f, -0.707f);
-     v[2] = LightVertex( 1.0f, 0.0f, -1.0f, 0.0f, 0.707f, -0.707f);
-
+   	 LightVertex* lightVer;
+	 pir->Lock(0, 0, (void**)&lightVer, 0);
+	 // front face
+	 lightVer[0] = LightVertex(-1.0f, 0.0f, -1.0f, 0.0f, 0.707f, -0.707f);
+     lightVer[1] = LightVertex( 0.0f, 1.0f,  0.0f, 0.0f, 0.707f, -0.707f);
+     lightVer[2] = LightVertex( 1.0f, 0.0f, -1.0f, 0.0f, 0.707f, -0.707f);
      // левая грань
-     v[3] = LightVertex(-1.0f, 0.0f,  1.0f, -0.707f, 0.707f, 0.0f);
-     v[4] = LightVertex( 0.0f, 1.0f,  0.0f, -0.707f, 0.707f, 0.0f);
-     v[5] = LightVertex(-1.0f, 0.0f, -1.0f, -0.707f, 0.707f, 0.0f);
-
+     lightVer[3] = LightVertex(-1.0f, 0.0f,  1.0f, -0.707f, 0.707f, 0.0f);
+     lightVer[4] = LightVertex( 0.0f, 1.0f,  0.0f, -0.707f, 0.707f, 0.0f);
+     lightVer[5] = LightVertex(-1.0f, 0.0f, -1.0f, -0.707f, 0.707f, 0.0f);
      // правая грань
-     v[6] = LightVertex( 1.0f, 0.0f, -1.0f, 0.707f, 0.707f, 0.0f);
-     v[7] = LightVertex( 0.0f, 1.0f,  0.0f, 0.707f, 0.707f, 0.0f);
-     v[8] = LightVertex( 1.0f, 0.0f,  1.0f, 0.707f, 0.707f, 0.0f);
-
+     lightVer[6] = LightVertex( 1.0f, 0.0f, -1.0f, 0.707f, 0.707f, 0.0f);
+     lightVer[7] = LightVertex( 0.0f, 1.0f,  0.0f, 0.707f, 0.707f, 0.0f);
+     lightVer[8] = LightVertex( 1.0f, 0.0f,  1.0f, 0.707f, 0.707f, 0.0f);
      // задняя грань
-     v[9]  = LightVertex( 1.0f, 0.0f, 1.0f, 0.0f, 0.707f, -0.707f);
-     v[10] = LightVertex( 0.0f, 1.0f, 0.0f, 0.0f, 0.707f, -0.707f);
-     v[11] = LightVertex(-1.0f, 0.0f, 1.0f, 0.0f, 0.707f, -0.707f);
+     lightVer[9]  = LightVertex( 1.0f, 0.0f, 1.0f, 0.0f, 0.707f, 0.707f);
+     lightVer[10] = LightVertex( 0.0f, 1.0f, 0.0f, 0.0f, 0.707f, 0.707f);
+     lightVer[11] = LightVertex(-1.0f, 0.0f, 1.0f, 0.0f, 0.707f, 0.707f);
 	 pir->Unlock();
+	 */
 
+	 pD3DDevice->CreateVertexBuffer(
+					6*sizeof(TexelVertex),
+					D3DUSAGE_WRITEONLY,
+					TexelVertex::TLFVF,
+					D3DPOOL_MANAGED,
+					&Quad,
+					0);
+	 TexelVertex* v;
+	 Quad->Lock(0,0, (void**)&v, 0);
+
+	 v[0] = TexelVertex(-1.0f, -1.0f, 1.25f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
+     v[1] = TexelVertex(-1.0f,  1.0f, 1.25f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
+     v[2] = TexelVertex( 1.0f,  1.0f, 1.25f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f);
+
+     v[3] = TexelVertex(-1.0f, -1.0f, 1.25f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
+     v[4] = TexelVertex( 1.0f,  1.0f, 1.25f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f);
+     v[5] = TexelVertex( 1.0f, -1.0f, 1.25f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f);
+
+	 Quad->Unlock();
+
+	 D3DXCreateTextureFromFile(
+					pD3DDevice,
+					"dx5_logo.bmp",
+					&Tex);
+
+	 pD3DDevice->SetTexture(0, Tex);
+	 
+	 pD3DDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+	 pD3DDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+	 pD3DDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
+
+	 /*
+	 ZeroMemory(&material, sizeof(material));
 	 material.Ambient  = d3d::WHITE;
 	 material.Diffuse  = d3d::WHITE;
 	 material.Specular = d3d::WHITE;
@@ -393,67 +381,22 @@ bool Setup()
 	 pD3DDevice->SetMaterial(&material);
 
 	 ZeroMemory(&light, sizeof(light));
-
 	 light.Type      = D3DLIGHT_DIRECTIONAL;
 	 light.Diffuse   = d3d::WHITE;
      light.Specular  = d3d::WHITE * 0.3f;
      light.Ambient   = d3d::WHITE * 0.6f;
-     light.Direction = D3DXVECTOR3(1.0f, -0.0f, 0.25f);	
-
+     light.Direction = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
      pD3DDevice->SetLight(0, &light);
      pD3DDevice->LightEnable(0, true);
+	 */
 
-	 // Вершины единичного куба
-	 
-     vertices[0] = Vertex(-1.0f, -1.0f, -1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
-     vertices[1] = Vertex(-1.0f,  1.0f, -1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
-     vertices[2] = Vertex( 1.0f,  1.0f, -1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
-     vertices[3] = Vertex( 1.0f, -1.0f, -1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
-     vertices[4] = Vertex(-1.0f, -1.0f,  1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
-     vertices[5] = Vertex(-1.0f,  1.0f,  1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
-     vertices[6] = Vertex( 1.0f,  1.0f,  1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
-     vertices[7] = Vertex( 1.0f, -1.0f,  1.0f, D3DCOLOR_ARGB(255, 0, 128, 0));
 
-     VB->Unlock();
-
-     // Описание образующих куб треугольников
-     WORD* indices = 0;
-     IB->Lock(0, 0, (void**)&indices, 0);
-
-     // передняя грань
-     indices[0]  = 0; indices[1]  = 1; indices[2]  = 2;
-     indices[3]  = 0; indices[4]  = 2; indices[5]  = 3;
-
-     // задняя грань
-     indices[6]  = 4; indices[7]  = 6; indices[8]  = 5;
-     indices[9]  = 4; indices[10] = 7; indices[11] = 6;
-
-     // левая грань
-     indices[12] = 4; indices[13] = 5; indices[14] = 1;
-     indices[15] = 4; indices[16] = 1; indices[17] = 0;
-
-     // правая грань
-     indices[18] = 3; indices[19] = 2; indices[20] = 6;
-     indices[21] = 3; indices[22] = 6; indices[23] = 7;
-
-     // верх
-     indices[24] = 1; indices[25] = 5; indices[26] = 6;
-     indices[27] = 1; indices[28] = 6; indices[29] = 2;
-
-     // низ
-     indices[30] = 4; indices[31] = 0; indices[32] = 3;
-     indices[33] = 4; indices[34] = 3; indices[35] = 7;
-
-     IB->Unlock();
-
-	 pD3DDevice->SetTexture(0,NULL);
-
-     // размещение и ориентация камеры
+	 // размещение и ориентация камеры
 
 	 //Builds a left-handed, look-at matrix.
      D3DXMatrixLookAtLH(&V, &position, &target, &up);
 
-	// пространство вида
+	 // пространство вида
      pD3DDevice->SetTransform(D3DTS_VIEW, &V);
 
      // установка матрицы проекции
@@ -473,9 +416,53 @@ bool Setup()
 	 pD3DDevice->SetViewport(&vp);
 
      // установка режима визуализации
-	 pD3DDevice->SetRenderState(D3DRS_NORMALIZENORMALS, true);
-	 pD3DDevice->SetRenderState(D3DRS_LIGHTING, true);
+	// pD3DDevice->SetRenderState(D3DRS_NORMALIZENORMALS, true);  // добавление этой строки, улучшило визуализацию света
+	//pD3DDevice->SetRenderState(D3DRS_SPECULARENABLE, true);
+
+	 pD3DDevice->SetRenderState(D3DRS_LIGHTING, false);
+
      return true;
+}
+
+
+void MirrorSetup()
+{
+	pD3DDevice->SetRenderState(D3DRS_STENCILENABLE, true);
+	pD3DDevice->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_ALWAYS); // проверка трафарета всегда завершается успешна, установка операции сравнения
+	pD3DDevice->SetRenderState(D3DRS_STENCILREF, 0x1);
+	pD3DDevice->SetRenderState(D3DRS_STENCILMASK,      0xffffffff);
+	pD3DDevice->SetRenderState(D3DRS_STENCILWRITEMASK, 0xffffffff);
+	pD3DDevice->SetRenderState(D3DRS_STENCILZFAIL, D3DSTENCILOP_KEEP);
+	pD3DDevice->SetRenderState(D3DRS_STENCILFAIL,  D3DSTENCILOP_KEEP);
+	pD3DDevice->SetRenderState(D3DRS_STENCILPASS , D3DSTENCILOP_REPLACE);
+
+	pD3DDevice->SetRenderState(D3DRS_ZWRITEENABLE, false);
+	pD3DDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, true);
+
+	// -- dont understand this code part
+	pD3DDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ZERO);
+	pD3DDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+
+	pD3DDevice->SetStreamSource(0, mirrorBuffer, 0, sizeof(TexelVertex));
+	pD3DDevice->SetFVF(TexelVertex::TLFVF);
+	pD3DDevice->SetMaterial();// material
+	pD3DDevice->SetTexture();//texture
+	D3DXMATRIX *I;
+	D3DXMatrixIdentity(I);
+	pD3DDevice->SetTransform(D3DTS_WORLD, I);
+	pD3DDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 18, 2);
+	pD3DDevice->SetRenderState(D3DRS_ZWRITEENABLE, true);
+
+	pD3DDevice->SetRenderState(D3DRS_STENCILFUNC, D3DCMP_EQUAL);
+	pD3DDevice->SetRenderState();
+
+
+
+
+
+
+
+
 }
 
 
